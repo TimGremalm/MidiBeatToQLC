@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import sys
 import getopt
@@ -37,7 +37,10 @@ def main():
 	t.start()
 	threadList.append(t)
 
+	waitForExit()
+	print("Threads is closed, terminating self.")
 	unloadMidi()
+	sys.exit(0)
 
 def receiveMidi():
 	global QLCInputs
@@ -83,6 +86,15 @@ def usage():
 	print ("--help : shows this help")
 	print ("--list : list available midi devices")
 	print ("--input [device_id] : Midi-device to receive from")
+
+def waitForExit():
+	print("Write exit to exit")
+	while (raw_input("") != "exit"):
+		print("Write exit to exit")
+
+	global shutdown
+	shutdown = True
+	print("Key pressed, waiting for threads to close.")
 
 if __name__ == '__main__':
 	#Parse arguments
