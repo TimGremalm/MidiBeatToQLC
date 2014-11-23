@@ -13,7 +13,10 @@ inputMidiDevice = 1
 midiTickStatus = 248
 midiTickViceId = 1
 midiTickCounter = 0
+avgBpm = 0
+lastMidiBeat = 0
 lastMidiBeats = []
+lastMidiBeatDeltas = []
 QLCInputs = []
 threadList = []
 shutdown = False
@@ -34,6 +37,10 @@ def main():
 
 	global threadList
 	t = threading.Thread(target=receiveMidi, args=())
+	t.start()
+	threadList.append(t)
+
+	t = threading.Thread(target=calculateBeats, args=())
 	t.start()
 	threadList.append(t)
 
@@ -88,6 +95,29 @@ def receiveMidi():
 	del i
 
 	unloadMidi()
+
+def calculateBeats():
+	global lastMidiBeat
+	global lastMidiBeats
+	global avgBpm
+	while shutdown == False:
+		if len(lastMidiBeats) > 1:
+			if lastMidiBeat != lastMidiBeats[-1]:
+				#Calculate instant values
+				deltaBeatMs = lastMidiBeats[-1] - lastMidiBeats[-2]
+				lastMidiBeat = lastMidiBeats[-1]
+				#bpm = 60/(deltaBeatMs / float(1000))
+
+				#Add delta to list
+				lastMidiBeatDeltas.append(deltaBeatMs)
+				if len(lastMidiBeatDeltas) > 10:
+					lastMidiBeatDeltas.pop(0)
+
+				#Calculate mean values
+				avgDeltaBeatMs = sum(lastMidiBeatDeltas)/float(len(lastMidiBeatDeltas))
+				avgBpm = 60/(avgDeltaBeatMs / float(1000))
+
+				print(" "+str(round(avgBpm, 0)))
 
 class QLCInput:
 	Name = ""
