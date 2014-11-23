@@ -6,12 +6,14 @@ import threading
 import time
 import pygame
 import pygame.midi
+import pygame.time
 from pygame.locals import *
 
-inputMidiChannel = 1
-channelMidi = 5
-noteMidi = 0
-lastBeat = 0
+inputMidiDevice = 1
+midiTickStatus = 248
+midiTickViceId = 1
+midiTickCounter = 0
+lastMidiBeats = []
 QLCInputs = []
 threadList = []
 shutdown = False
@@ -30,8 +32,6 @@ def main():
 	QLCInputs.append(QLCInput("Takkrona", "http://127.0.0.1:8000/takkrona"))
 	QLCInputs.append(QLCInput("Spotlights", "http://127.0.0.1:8000/spotlights"))
 
-	initMidi()
-
 	global threadList
 	t = threading.Thread(target=receiveMidi, args=())
 	t.start()
@@ -39,14 +39,55 @@ def main():
 
 	waitForExit()
 	print("Threads is closed, terminating self.")
-	unloadMidi()
 	sys.exit(0)
 
 def receiveMidi():
-	global QLCInputs
+	initMidi()
 
-	for input in QLCInputs:
-		input.NextMS += 1
+	global lastMidiBeats
+	global midiTickCounter
+
+	pygame.init()
+	pygame.fastevent.init()
+	event_get = pygame.fastevent.get
+	event_post = pygame.fastevent.post
+
+	i = pygame.midi.Input(inputMidiDevice)
+
+	#250 MIDI Clock Start
+	#252 MIDI Clock Stop
+	#248 MIDI Clock Tick
+	while shutdown == False:
+		events = event_get()
+		for e in events:
+			if e.type in [QUIT]:
+				going = False
+			if e.type in [KEYDOWN]:
+				going = False
+			if e.type in [pygame.midi.MIDIIN]:
+				#Uncommend to see all MIDI-messages
+				#print (e)
+				#print(str(pygame.time.get_ticks()))
+				if e.status == midiTickStatus and e.vice_id == midiTickViceId:
+					midiTickCounter += 1
+
+					#24 MIDI Clock-Ticks per Beat
+					if midiTickCounter >= 24:
+						lastMidiBeats.append(e.timestamp)
+						#Only hold 10 latest beats
+						if len(lastMidiBeats) > 10:
+							lastMidiBeats.pop(0)
+						print("Beat! " + str(lastMidiBeats[-1]))
+						midiTickCounter = 0
+		if i.poll():
+			midi_events = i.read(10)
+			# convert them into pygame events.
+			midi_evs = pygame.midi.midis2events(midi_events, i.device_id)
+			for m_e in midi_evs:
+				event_post( m_e )
+	del i
+
+	unloadMidi()
 
 class QLCInput:
 	Name = ""
@@ -60,7 +101,6 @@ class QLCInput:
 		self.QLCAddress = iQLCAddress
 
 def initMidi():
-	pygame.init()
 	pygame.midi.init()
 
 def unloadMidi():
@@ -109,7 +149,9 @@ if __name__ == '__main__':
 		usage()
 		sys.exit(2)
 
-	inputMidiChannel = 0
+	pygame.init()
+
+	inputMidiDevice = 0
 	for o, a in opts:
 		if o in ("-h", "--help"):
 			aboutAndUsage()
@@ -121,7 +163,7 @@ if __name__ == '__main__':
 			sys.exit(0)
 		elif o in ("-i", "--input"):
 			try:
-				inputMidiChannel = int(a)
+				inputMidiDevice = int(a)
 			except ValueError:
 				print("Input \""+a+"\" is not a valid integer, use --list to see input-MIDI-channels.")
 				usage()
