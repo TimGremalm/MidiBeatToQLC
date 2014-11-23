@@ -2,11 +2,19 @@
 
 import sys
 import getopt
+import threading
+import time
 import pygame
 import pygame.midi
 from pygame.locals import *
 
-global inputMidiChannel
+inputMidiChannel = 1
+channelMidi = 5
+noteMidi = 0
+lastBeat = 0
+QLCInputs = []
+threadList = []
+shutdown = False
 
 def about():
 	print("MidiBeatToQLC")
@@ -16,6 +24,37 @@ def about():
 
 def main():
 	print("main")
+
+	#Declare inputs
+	global QLCInputs
+	QLCInputs.append(QLCInput("Takkrona", "http://127.0.0.1:8000/takkrona"))
+	QLCInputs.append(QLCInput("Spotlights", "http://127.0.0.1:8000/spotlights"))
+
+	initMidi()
+
+	global threadList
+	t = threading.Thread(target=receiveMidi, args=())
+	t.start()
+	threadList.append(t)
+
+	unloadMidi()
+
+def receiveMidi():
+	global QLCInputs
+
+	for input in QLCInputs:
+		input.NextMS += 1
+
+class QLCInput:
+	Name = ""
+	QLCAddress = ""
+	NextMS = 0
+	PreviousBeats = []
+	SendFactor = 1
+	Send = False
+	def __init__(self, iName, iQLCAddress):
+		self.Name = iName
+		self.QLCAddress = iQLCAddress
 
 def initMidi():
 	pygame.init()
@@ -78,5 +117,6 @@ if __name__ == '__main__':
 		else:
 			assert False, "unhandled option"
 
+	#Call main-function
 	main()
 
