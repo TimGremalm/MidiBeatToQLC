@@ -118,6 +118,10 @@ def calculateBeats():
 				avgBpm = 60/(avgDeltaBeatMs / float(1000))
 
 				print(" "+str(round(avgBpm, 0)))
+				for input in QLCInputs:
+					nextDeltaBeatMS = avgDeltaBeatMs/float(input.SendFactor)
+					input.NextMS = lastMidiBeats[-1] + nextDeltaBeatMS
+					#print("nextms:" + str(input.NextMS) + " lastbeatms:" + str(lastMidiBeats[-1]) + " deltams:" + str(avgDeltaBeatMs))
 
 class QLCInput:
 	Name = ""
