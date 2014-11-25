@@ -8,6 +8,7 @@ import pygame
 import pygame.midi
 import pygame.time
 from pygame.locals import *
+from clsQLCInput import QLCInput
 
 inputMidiDevice = 1
 midiTickStatus = 248
@@ -122,17 +123,6 @@ def calculateBeats():
 					nextDeltaBeatMS = avgDeltaBeatMs/float(input.SendFactor)
 					input.NextMS = lastMidiBeats[-1] + nextDeltaBeatMS
 					#print("nextms:" + str(input.NextMS) + " lastbeatms:" + str(lastMidiBeats[-1]) + " deltams:" + str(avgDeltaBeatMs))
-
-class QLCInput:
-	Name = ""
-	QLCAddress = ""
-	NextMS = 0
-	PreviousBeats = []
-	SendFactor = 1
-	Send = False
-	def __init__(self, iName, iQLCAddress):
-		self.Name = iName
-		self.QLCAddress = iQLCAddress
 
 def initMidi():
 	pygame.midi.init()
