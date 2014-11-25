@@ -26,11 +26,41 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 		self.lblAvgBpm.setText('BPM: ' + str(avgBpm))
 		self.lblAvgBpm.setFont(self.fntLabels)
 
+		vbox = QtGui.QVBoxLayout()
+		vbox.addStretch(1)
+		self.setLayout(vbox)
+
+		a = guiQlcInput()
+		b = guiQlcInput()
+		vbox.addWidget(a)
+		vbox.addWidget(b)
+
 		self.show()
 
-#class guiStatus(QtGui.QWidget):
-#	def __init__(self):
-#		super(guiStatus, self).__init__()
-#		self.initUI()
-#
-#	def initUI(self):
+class guiQlcInput(QtGui.QWidget):
+	def __init__(self):
+		super(guiQlcInput, self).__init__()
+		self.initUI()
+
+	def initUI(self):
+		vbox = QtGui.QVBoxLayout()
+		vbox.addStretch(1)
+		self.setLayout(vbox)
+
+		fntLabels = QtGui.QFont('Courier New', 16, QtGui.QFont.Light)
+		lblAvgBpm = QtGui.QLabel(self)
+		lblAvgBpm.setText('BPM: ' + str(0))
+		lblAvgBpm.setFont(fntLabels)
+
+		vbox.addWidget(lblAvgBpm)
+
+		hbox = QtGui.QVBoxLayout()
+		hbox.addStretch(1)
+
+		btnBeatHalf = QtGui.QPushButton("/ 2")
+		btnBeatDouble = QtGui.QPushButton("* 2")
+		hbox.addWidget(btnBeatHalf)
+		hbox.addWidget(btnBeatDouble)
+
+		vbox.addWidget(hbox)
+
