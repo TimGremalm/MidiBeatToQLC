@@ -20,7 +20,7 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 		self.setWindowTitle('MidiBeatToQLC')
 		self.setWindowIcon(QtGui.QIcon('midi.ico'))
 
-		self.fntLabels = QtGui.QFont('Courier New', 16, QtGui.QFont.Light)
+		self.fntLabels = QtGui.QFont('Courier New', 20, QtGui.QFont.Bold)
 
 		self.lblAvgBpm = QtGui.QLabel(self)
 		self.lblAvgBpm.setText('BPM: ' + str(avgBpm))
@@ -32,6 +32,7 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 
 		a = guiQlcInput()
 		b = guiQlcInput()
+		vbox.addWidget(self.lblAvgBpm)
 		vbox.addWidget(a)
 		vbox.addWidget(b)
 
@@ -43,24 +44,32 @@ class guiQlcInput(QtGui.QWidget):
 		self.initUI()
 
 	def initUI(self):
-		vbox = QtGui.QVBoxLayout()
-		vbox.addStretch(1)
-		self.setLayout(vbox)
+		#vbox = QtGui.QVBoxLayout()
+		#vbox.addStretch(1)
+		#self.setLayout(vbox)
+		grid = QtGui.QGridLayout()
+		self.setLayout(grid)
 
 		fntLabels = QtGui.QFont('Courier New', 16, QtGui.QFont.Light)
+
+		lblName = QtGui.QLabel(self)
+		lblName.setText('Name')
+		lblName.setFont(fntLabels)
+
 		lblAvgBpm = QtGui.QLabel(self)
 		lblAvgBpm.setText('BPM: ' + str(0))
 		lblAvgBpm.setFont(fntLabels)
 
-		vbox.addWidget(lblAvgBpm)
-
-		hbox = QtGui.QVBoxLayout()
-		hbox.addStretch(1)
+		lblFactor = QtGui.QLabel(self)
+		lblFactor.setText('Factor: ' + str(1))
+		lblFactor.setFont(fntLabels)
 
 		btnBeatHalf = QtGui.QPushButton("/ 2")
 		btnBeatDouble = QtGui.QPushButton("* 2")
-		hbox.addWidget(btnBeatHalf)
-		hbox.addWidget(btnBeatDouble)
 
-		vbox.addWidget(hbox)
+		grid.addWidget(lblName, 0, 0)
+		grid.addWidget(lblAvgBpm, 1, 0)
+		grid.addWidget(lblFactor, 1, 1)
+		grid.addWidget(btnBeatHalf, 2, 0)
+		grid.addWidget(btnBeatDouble, 2, 1)
 
