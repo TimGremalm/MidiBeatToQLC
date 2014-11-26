@@ -34,6 +34,10 @@ def incAvgBpm():
 		global avgBpm
 		avgBpm += 1
 		print(str(avgBpm))
+
+		for input in QLCInputs:
+			print(input.Name + " " + str(input.SendFactor))
+
 		time.sleep(1)
 
 if __name__ == '__main__':

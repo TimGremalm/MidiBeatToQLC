@@ -5,6 +5,7 @@ from PyQt4 import QtGui
 class guiMidiBeatToQLC(QtGui.QWidget):
 	inputsQlc = []
 	avgBpm = 0
+	guiInputsQlc = []
 
 	def __init__(self, iinputsQlc, iavgBpm):
 		global inputsQlc
@@ -30,23 +31,28 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 		vbox.addStretch(1)
 		self.setLayout(vbox)
 
-		a = guiQlcInput()
-		b = guiQlcInput()
 		vbox.addWidget(self.lblAvgBpm)
-		vbox.addWidget(a)
-		vbox.addWidget(b)
+		#a = guiQlcInput()
+		#b = guiQlcInput()
+		#vbox.addWidget(a)
+		#vbox.addWidget(b)
+		global guiInputsQlc
+		for input in inputsQlc:
+			temp = guiQlcInput(input)
+			vbox.addWidget(temp)
+			guiInputsQlc.append(temp)
 
 		self.show()
 
 class guiQlcInput(QtGui.QWidget):
-	def __init__(self):
+	inputQlc = 0
+	def __init__(self, iinputQlc):
+		global inputQlc
+		inputQlc = iinputQlc
 		super(guiQlcInput, self).__init__()
 		self.initUI()
 
 	def initUI(self):
-		#vbox = QtGui.QVBoxLayout()
-		#vbox.addStretch(1)
-		#self.setLayout(vbox)
 		grid = QtGui.QGridLayout()
 		self.setLayout(grid)
 
