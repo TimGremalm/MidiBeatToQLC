@@ -9,16 +9,19 @@ import time
 QLCInputs = []
 avgBpm = 127
 shutdown = False
+app = 0
 
 def main():
 	#Declare inputs
 	global QLCInputs
+	global avgBpm
 	QLCInputs.append(QLCInput("Takkrona", "http://127.0.0.1:8000/takkrona"))
 	QLCInputs.append(QLCInput("Spotlights", "http://127.0.0.1:8000/spotlights"))
 
 	t = threading.Thread(target=incAvgBpm, args=())
 	t.start()
 
+	global app
 	app = QtGui.QApplication([''])
 	gui = guiMidiBeatToQLC(QLCInputs, avgBpm)
 
@@ -39,6 +42,8 @@ def incAvgBpm():
 			print(input.Name + " " + str(input.SendFactor))
 
 		time.sleep(1)
+
+		app.processEvents()
 
 if __name__ == '__main__':
 	main()
