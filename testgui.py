@@ -7,7 +7,7 @@ import threading
 import time
 
 QLCInputs = []
-avgBpm = 127
+avgBpm = []
 shutdown = False
 app = 0
 
@@ -17,6 +17,9 @@ def main():
 	global avgBpm
 	QLCInputs.append(QLCInput("Takkrona", "http://127.0.0.1:8000/takkrona"))
 	QLCInputs.append(QLCInput("Spotlights", "http://127.0.0.1:8000/spotlights"))
+
+	avgBpm.append(127)
+	print(str(avgBpm[0]))
 
 	t = threading.Thread(target=incAvgBpm, args=())
 	t.start()
@@ -35,15 +38,13 @@ def main():
 def incAvgBpm():
 	while shutdown == False:
 		global avgBpm
-		avgBpm += 1
-		print(str(avgBpm))
+		avgBpm[0] += 1
+		print(str(avgBpm[0]))
 
 		for input in QLCInputs:
-			print(input.Name + " " + str(input.SendFactor))
+			print(input.Name + " " + str(input.SendFactor) + " " + str(input.Send))
 
 		time.sleep(1)
-
-		app.processEvents()
 
 if __name__ == '__main__':
 	main()

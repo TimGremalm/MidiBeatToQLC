@@ -6,7 +6,7 @@ import time
 class guiMidiBeatToQLC(QtGui.QWidget):
 	inputsQlc = []
 	guiInputsQlc = []
-	#avgBpm = 0
+	avgBpm = []
 
 	def __init__(self, iinputsQlc, iavgBpm):
 		super(guiMidiBeatToQLC, self).__init__()
@@ -18,11 +18,12 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 		self.resize(250, 650)
 		self.setWindowTitle('MidiBeatToQLC')
 		self.setWindowIcon(QtGui.QIcon('midi.ico'))
+		self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
 		self.fntLabels = QtGui.QFont('Courier New', 20, QtGui.QFont.Bold)
 
 		self.lblAvgBpm = QtGui.QLabel(self)
-		self.lblAvgBpm.setText('BPM: ' + str(self.avgBpm))
+		self.lblAvgBpm.setText('BPM: ' + str(self.avgBpm[0]))
 		self.lblAvgBpm.setFont(self.fntLabels)
 
 		vbox = QtGui.QVBoxLayout()
@@ -42,8 +43,10 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 		self.show()
 
 	def lblAvgBpm_Timer(self):
-		self.lblAvgBpm.setText(str(self.avgBpm))
-		print("Hi from timer! " + str(self.avgBpm))
+		self.lblAvgBpm.setText("BPM: " + str(self.avgBpm[0]))
+		for i in self.guiInputsQlc:
+			bpm = self.avgBpm[0] * i.inputQlc.SendFactor
+			i.lblAvgBpm.setText("BPM: " + str(round(bpm,1)))
 
 class guiQlcInput(QtGui.QWidget):
 	def __init__(self, iinputQlc):
@@ -74,17 +77,27 @@ class guiQlcInput(QtGui.QWidget):
 		btnBeatDouble = QtGui.QPushButton("* 2")
 		btnBeatDouble.clicked.connect(self.btnBeatDouble_OnClicked)
 
+		chkSend = QtGui.QCheckBox('Send', self)
+		chkSend.stateChanged.connect(self.chkSend_Checked)
+
 		grid.addWidget(lblName, 0, 0)
-		grid.addWidget(self.lblAvgBpm, 1, 0)
-		grid.addWidget(self.lblFactor, 1, 1)
-		grid.addWidget(btnBeatHalf, 2, 0)
-		grid.addWidget(btnBeatDouble, 2, 1)
+		grid.addWidget(chkSend, 1, 0)
+		grid.addWidget(self.lblAvgBpm, 2, 0)
+		grid.addWidget(self.lblFactor, 2, 1)
+		grid.addWidget(btnBeatHalf, 3, 0)
+		grid.addWidget(btnBeatDouble, 3, 1)
 
 	def btnBeatHalf_OnClicked(self):
 		self.inputQlc.SendFactor = self.inputQlc.SendFactor / float(2)
-		self.lblFactor.setText(str(self.inputQlc.SendFactor))
+		self.lblFactor.setText("Factor: " + str(self.inputQlc.SendFactor))
 
 	def btnBeatDouble_OnClicked(self):
 		self.inputQlc.SendFactor = self.inputQlc.SendFactor * float(2)
-		self.lblFactor.setText(str(self.inputQlc.SendFactor))
+		self.lblFactor.setText("Factor: " + str(self.inputQlc.SendFactor))
+
+	def chkSend_Checked(self, state):
+		if state == QtCore.Qt.Checked:
+			self.inputQlc.Send = True
+		else:
+			self.inputQlc.Send = False
 
