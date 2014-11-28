@@ -9,17 +9,20 @@ import pygame.midi
 import pygame.time
 from pygame.locals import *
 from clsQLCInput import QLCInput
+from PyQt4 import QtGui
+from guiMidiBeatToQLC import guiMidiBeatToQLC
 
 inputMidiDevice = 1
 midiTickStatus = 248
 midiTickViceId = 1
 midiTickCounter = 0
-avgBpm = 0
+avgBpm = []
 lastMidiBeat = 0
 lastMidiBeats = []
 lastMidiBeatDeltas = []
 QLCInputs = []
 threadList = []
+app = 0
 shutdown = False
 
 def about():
@@ -47,7 +50,17 @@ def main():
 	t.start()
 	threadList.append(t)
 
-	waitForExit()
+	global app
+	global avgBpm
+	avgBpm.append(127)
+	app = QtGui.QApplication([''])
+	gui = guiMidiBeatToQLC(QLCInputs, avgBpm)
+
+	#waitForExit()
+	app.exec_()
+	global shutdown
+	shutdown = True
+
 	print("Threads is closed, terminating self.")
 	sys.exit(0)
 
@@ -118,9 +131,9 @@ def calculateBeats():
 
 				#Calculate mean values
 				avgDeltaBeatMs = sum(lastMidiBeatDeltas)/float(len(lastMidiBeatDeltas))
-				avgBpm = 60/(avgDeltaBeatMs / float(1000))
+				avgBpm[0] = 60/(avgDeltaBeatMs / float(1000))
 
-				print(" "+str(round(avgBpm, 0)))
+				print(" "+str(round(avgBpm[0], 0)))
 				for input in QLCInputs:
 					nextDeltaBeatMS = avgDeltaBeatMs/float(input.SendFactor)
 					input.NextMS = lastMidiBeats[-1] + nextDeltaBeatMS

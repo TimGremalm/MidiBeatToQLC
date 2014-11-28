@@ -43,7 +43,7 @@ class guiMidiBeatToQLC(QtGui.QWidget):
 		self.show()
 
 	def lblAvgBpm_Timer(self):
-		self.lblAvgBpm.setText("BPM: " + str(self.avgBpm[0]))
+		self.lblAvgBpm.setText("BPM: " + str(round(self.avgBpm[0],1)))
 		for i in self.guiInputsQlc:
 			bpm = self.avgBpm[0] * i.inputQlc.SendFactor
 			i.lblAvgBpm.setText("BPM: " + str(round(bpm,1)))
