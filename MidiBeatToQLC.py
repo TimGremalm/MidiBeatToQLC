@@ -27,6 +27,8 @@ def about():
 	print("=============")
 	print("An intreface to grab a beat-signal from MIDI-in and send it to QLC+ through a websocket.")
 	print("By Tim Gremalm, tim@gremalm.se, http://tim.gremalm.se")
+	print("Start QLC with --web argument to enable web-socket-mode.")
+	print("C:\QLC+\qlcplus.exe --web")
 
 def main():
 	print("main")
@@ -160,8 +162,7 @@ def waitForExit():
 	shutdown = True
 	print("Key pressed, waiting for threads to close.")
 
-if __name__ == '__main__':
-	#Parse arguments
+def parseArgs():
 	if len(sys.argv) == 1:
 		aboutAndUsage()
 		sys.exit(1)
@@ -173,7 +174,6 @@ if __name__ == '__main__':
 		usage()
 		sys.exit(2)
 
-	pygame.init()
 
 	inputMidiDevice = 0
 	for o, a in opts:
@@ -195,6 +195,13 @@ if __name__ == '__main__':
 		else:
 			assert False, "unhandled option"
 
-	#Call main-function
+if __name__ == '__main__':
+	#Init PyGame
+	pygame.init()
+
+	#Parse Arguments
+	parseArgs()
+
+	#Call Main-function
 	main()
 
