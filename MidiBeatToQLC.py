@@ -88,9 +88,11 @@ def websocketSend():
 							if input.PreviousState == 0:
 								input.PreviousState = 1
 								ws.send(input.QlcId + "|1")
+								#print("on")
 							else:
 								input.PreviousState = 0
 								ws.send(input.QlcId + "|0")
+								#print("off")
 		time.sleep(0.01)
 
 	ws.close()
@@ -148,28 +150,40 @@ def calculateBeats():
 	global lastMidiBeat
 	global lastMidiBeats
 	global avgBpm
+	#lastMidiBeatDeltas.append(1000)
+	diffLatestAndTime = 0
 	while shutdown == False:
 		if len(lastMidiBeats) > 1:
+			#Recalculate if there's a new  beat
 			if lastMidiBeat != lastMidiBeats[-1]:
 				#Calculate instant values
 				deltaBeatMs = lastMidiBeats[-1] - lastMidiBeats[-2]
-				lastMidiBeat = lastMidiBeats[-1]
-				#bpm = 60/(deltaBeatMs / float(1000))
 
 				#Add delta to list
 				lastMidiBeatDeltas.append(deltaBeatMs)
 				if len(lastMidiBeatDeltas) > 10:
 					lastMidiBeatDeltas.pop(0)
+				lastMidiBeat = lastMidiBeats[-1]
 
 				#Calculate mean values
 				avgDeltaBeatMs = sum(lastMidiBeatDeltas)/float(len(lastMidiBeatDeltas))
 				avgBpm[0] = 60/(avgDeltaBeatMs / float(1000))
 
-				print(" "+str(round(avgBpm[0], 0)))
-				for input in QLCInputs:
+				#Calculate the timedifference
+				diffLatestAndTime = lastMidiBeats[-1] - pygame.time.get_ticks()
+
+			#print(" "+str(round(avgBpm[0], 0)))
+
+			for input in QLCInputs:
+				#If the next beat has benn played, time to calculate the next beat
+				if input.PreviousBeats[-1] >= input.NextMS:
 					nextDeltaBeatMS = avgDeltaBeatMs/float(input.SendFactor)
-					input.NextMS = lastMidiBeats[-1] + nextDeltaBeatMS
-					#print("nextms:" + str(input.NextMS) + " lastbeatms:" + str(lastMidiBeats[-1]) + " deltams:" + str(avgDeltaBeatMs))
+					#If the latest detected beat is new:er than the last played input-beat
+					if lastMidiBeats[-1] > input.PreviousBeats[-1]:
+						input.NextMS = lastMidiBeats[-1] + nextDeltaBeatMS + diffLatestAndTime
+					else:
+						input.NextMS = input.NextMS + nextDeltaBeatMS
+					#print("nextms:" + str(input.NextMS) + " lastbeatms:" + str(lastMidiBeats[-1]) + " deltams:" + str(avgDeltaBeatMs) + " now: " + str(pygame.time.get_ticks()))
 		time.sleep(0.01)
 
 def initMidi():
