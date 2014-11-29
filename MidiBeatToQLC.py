@@ -11,6 +11,7 @@ from pygame.locals import *
 from clsQLCInput import QLCInput
 from PyQt4 import QtGui
 from guiMidiBeatToQLC import guiMidiBeatToQLC
+import websocket
 
 inputMidiDevice = 1
 midiTickStatus = 248
@@ -24,6 +25,7 @@ QLCInputs = []
 threadList = []
 app = 0
 shutdown = False
+QlcAddress = "ws://127.0.0.1:9999/qlcplusWS"
 
 def about():
 	print("MidiBeatToQLC")
@@ -37,9 +39,10 @@ def main():
 	print("main")
 
 	#Declare inputs
+	#iName, iQlcType, iQlcId, iQlcCommand
 	global QLCInputs
-	QLCInputs.append(QLCInput("Takkrona", "http://127.0.0.1:8000/takkrona"))
-	QLCInputs.append(QLCInput("Spotlights", "http://127.0.0.1:8000/spotlights"))
+	QLCInputs.append(QLCInput("Takkrona", "togglebutton", "0", ""))
+	QLCInputs.append(QLCInput("Spotlights", "togglebutton", "0", ""))
 
 	global threadList
 	t = threading.Thread(target=receiveMidi, args=())
@@ -56,6 +59,10 @@ def main():
 	app = QtGui.QApplication([''])
 	gui = guiMidiBeatToQLC(QLCInputs, avgBpm)
 
+	t = threading.Thread(target=websocketSend, args=())
+	t.start()
+	threadList.append(t)
+
 	#waitForExit()
 	app.exec_()
 	global shutdown
@@ -63,6 +70,31 @@ def main():
 
 	print("Threads is closed, terminating self.")
 	sys.exit(0)
+
+def websocketSend():
+	print("Open websocket to " + QlcAddress)
+	ws = websocket.create_connection(QlcAddress)
+
+	while shutdown == False:
+		for input in QLCInputs:
+			if input.Send == True:
+				if pygame.time.get_ticks() >= input.NextMS:
+					if input.PreviousBeats[-1] != input.NextMS:
+						if input.QlcType == "togglebutton":
+							input.PreviousBeats.append(input.NextMS)
+							if len(input.PreviousBeats) > 10:
+								input.PreviousBeats.pop(0)
+
+							if input.PreviousState == 0:
+								input.PreviousState = 1
+								ws.send(input.QlcId + "|1")
+							else:
+								input.PreviousState = 0
+								ws.send(input.QlcId + "|0")
+		time.sleep(0.01)
+
+	ws.close()
+	print("Closing websocket.")
 
 def receiveMidi():
 	initMidi()
@@ -138,6 +170,7 @@ def calculateBeats():
 					nextDeltaBeatMS = avgDeltaBeatMs/float(input.SendFactor)
 					input.NextMS = lastMidiBeats[-1] + nextDeltaBeatMS
 					#print("nextms:" + str(input.NextMS) + " lastbeatms:" + str(lastMidiBeats[-1]) + " deltams:" + str(avgDeltaBeatMs))
+		time.sleep(0.01)
 
 def initMidi():
 	pygame.midi.init()
