@@ -41,8 +41,8 @@ def main():
 	#Declare inputs
 	#iName, iQlcType, iQlcId, iQlcCommand
 	global QLCInputs
-	QLCInputs.append(QLCInput("Takkrona", "togglebutton", "0", ""))
-	QLCInputs.append(QLCInput("Spotlights", "togglebutton", "0", ""))
+	QLCInputs.append(QLCInput("Stage floor", "cue", "283", "NEXT"))
+	QLCInputs.append(QLCInput("Flash Burst", "togglebutton", "289", ""))
 
 	global threadList
 	t = threading.Thread(target=receiveMidi, args=())
@@ -93,6 +93,11 @@ def websocketSend():
 								input.PreviousState = 0
 								ws.send(input.QlcId + "|0")
 								#print("off")
+						if input.QlcType == "cue":
+							input.PreviousBeats.append(input.NextMS)
+							if len(input.PreviousBeats) > 10:
+								input.PreviousBeats.pop(0)
+							ws.send(input.QlcId + "|" + input.QlcCommand)
 		time.sleep(0.01)
 
 	ws.close()
@@ -111,6 +116,7 @@ def receiveMidi():
 
 	i = pygame.midi.Input(inputMidiDevice)
 
+	#A small MIDI-cheat-sheet
 	#250 MIDI Clock Start
 	#252 MIDI Clock Stop
 	#248 MIDI Clock Tick
@@ -128,17 +134,17 @@ def receiveMidi():
 				if e.status == midiTickStatus and e.vice_id == midiTickViceId:
 					midiTickCounter += 1
 
-					#24 MIDI Clock-Ticks per Beat
+					#24 MIDI Clock-Ticks per beat
 					if midiTickCounter >= 24:
 						lastMidiBeats.append(e.timestamp)
-						#Only hold 10 latest beats
+						#Only hold 10 latest beats, will be used for calculation of meanvalue
 						if len(lastMidiBeats) > 10:
 							lastMidiBeats.pop(0)
 						print("Beat! " + str(lastMidiBeats[-1]))
 						midiTickCounter = 0
 		if i.poll():
 			midi_events = i.read(10)
-			# convert them into pygame events.
+			#Convert them into pygame events.
 			midi_evs = pygame.midi.midis2events(midi_events, i.device_id)
 			for m_e in midi_evs:
 				event_post( m_e )
@@ -150,7 +156,6 @@ def calculateBeats():
 	global lastMidiBeat
 	global lastMidiBeats
 	global avgBpm
-	#lastMidiBeatDeltas.append(1000)
 	diffLatestAndTime = 0
 	while shutdown == False:
 		if len(lastMidiBeats) > 1:
@@ -169,13 +174,13 @@ def calculateBeats():
 				avgDeltaBeatMs = sum(lastMidiBeatDeltas)/float(len(lastMidiBeatDeltas))
 				avgBpm[0] = 60/(avgDeltaBeatMs / float(1000))
 
-				#Calculate the timedifference
+				#Calculate the time difference
 				diffLatestAndTime = lastMidiBeats[-1] - pygame.time.get_ticks()
 
 			#print(" "+str(round(avgBpm[0], 0)))
 
 			for input in QLCInputs:
-				#If the next beat has benn played, time to calculate the next beat
+				#If the next beat has been played, time to calculate the next beat
 				if input.PreviousBeats[-1] >= input.NextMS:
 					nextDeltaBeatMS = avgDeltaBeatMs/float(input.SendFactor)
 					#If the latest detected beat is new:er than the last played input-beat
