@@ -38,7 +38,7 @@ Edit MidiBeatToQLC.py and declare your inputs in the main-section.
 
 Run
 ===
-Run MidiBeatToQLC with the -l option to list MIDI-devices, nte your decired input-id.
+Run MidiBeatToQLC with the -l option to list MIDI-devices, note your desired input-id.
 Start QLC+ with the --web option to make sure the websocket-mode is used.
 Run MidiBeatToQLC with the -i option to start the program.
 python MidiBeatToQLC.py -i1
